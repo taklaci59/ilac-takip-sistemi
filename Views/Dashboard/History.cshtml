@@ -1,0 +1,75 @@
+@model IEnumerable<ilactakipsistem.Models.UsageLog>
+
+@{
+    ViewData["Title"] = "İlaç Geçmişi";
+}
+
+<div class="glass-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4><i class="fas fa-history text-teal mr-2"></i>Kullanım Geçmişi</h4>
+        <div class="btn-group">
+            <button class="btn btn-outline-light btn-sm" onclick="exportToExcel()"><i class="fas fa-file-excel mr-1"></i> Excel</button>
+            <button class="btn btn-outline-light btn-sm ml-2" onclick="exportToPDF()"><i class="fas fa-file-pdf mr-1"></i> PDF</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover" id="historyTable">
+            <thead>
+                <tr>
+                    <th>İlaç Bilgisi</th>
+                    <th>Tarih ve Saat</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {
+                <tr>
+                    <td>
+                        <div class="font-weight-bold text-teal">@item.Medicine?.Name</div>
+                        <small class="text-muted">@item.Medicine?.Unit</small>
+                    </td>
+                    <td class="f-large">
+                        @item.DateTaken.ToString("dd/MM/yyyy HH:mm")
+                    </td>
+                    <td>
+                        @if (item.IsTaken) {
+                            <span class="badge bg-success-soft text-success px-3 py-2">
+                                <i class="fas fa-check-circle mr-1"></i> Alındı
+                            </span>
+                        } else {
+                            <span class="badge bg-danger-soft text-danger px-3 py-2">
+                                <i class="fas fa-times-circle mr-1"></i> Kaçırıldı
+                            </span>
+                        }
+                    </td>
+                </tr>
+                }
+                @if (!Model.Any()) {
+                    <tr>
+                        <td colspan="3" class="text-center py-5 text-muted f-large">
+                            Henüz kayıtlı bir kullanım geçmişi yok.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function exportToExcel() {
+            var wb = XLSX.utils.table_to_book(document.getElementById('historyTable'), {sheet: "Gecmis"});
+            XLSX.writeFile(wb, "Ilac_Gecmisi.xlsx");
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("İlaç Kullanım Geçmişi", 14, 15);
+            doc.autoTable({ html: '#historyTable', startY: 20 });
+            doc.save("Ilac_Gecmisi.pdf");
+        }
+    </script>
+}

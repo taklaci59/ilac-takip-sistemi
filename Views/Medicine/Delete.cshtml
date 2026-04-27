@@ -1,0 +1,23 @@
+@model ilactakipsistem.Models.Medicine
+
+@{
+    ViewData["Title"] = "İlaç Sil";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="glass-card text-center">
+            <i class="fas fa-trash-alt text-danger fa-4x mb-4"></i>
+            <h4 class="mb-3">İlacı Silmek İstediğinize Emin Misiniz?</h4>
+            <p class="text-muted"><strong>@Model.Name</strong> adlı ilaç sistemden kalıcı olarak silinecektir.</p>
+            
+            <div class="d-flex justify-content-center mt-5">
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <a asp-action="Index" class="btn btn-outline-light mr-3">Vazgeç</a>
+                    <button type="submit" class="btn btn-danger px-4">Evet, Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

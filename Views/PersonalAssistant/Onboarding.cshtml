@@ -1,0 +1,301 @@
+@{
+    Layout = null; 
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoş Geldiniz - Asistan Kurulumu</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #1a202c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .wizard-card {
+            max-width: 800px;
+            width: 95%;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        .assistant-sphere {
+            width: 60px;
+            height: 60px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            margin-bottom: 40px;
+            filter: blur(8px);
+            opacity: 0.6;
+            animation: calm-pulse 4s infinite ease-in-out;
+        }
+        @@keyframes calm-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.2); opacity: 0.6; }
+        }
+        .step {
+            display: none;
+            width: 100%;
+        }
+        .step.active {
+            display: block;
+            animation: fadeIn 0.8s ease;
+        }
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .wizard-input-lg {
+            background: rgba(255,255,255,0.05) !important;
+            border: 2px solid var(--border-soft) !important;
+            color: white !important;
+            font-size: 1.5rem !important;
+            padding: 15px !important;
+            border-radius: 12px !important;
+            text-align: center;
+        }
+        .wizard-input-lg:focus {
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 10px rgba(79, 209, 197, 0.2);
+        }
+
+        /* Suggestions Styles */
+        .suggestions-container {
+            position: absolute;
+            width: 80%;
+            left: 10%;
+            background: #2d3748;
+            border-radius: 0 0 12px 12px;
+            margin-top: -2px;
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-soft);
+            display: none;
+        }
+        .suggestion-item {
+            padding: 12px 20px;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+        }
+        .suggestion-item:hover {
+            background: var(--accent-primary);
+            color: #1a202c;
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .med-action-btn {
+            padding: 20px;
+            font-size: 1.2rem;
+            border-radius: 15px;
+            margin: 10px;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-card wizard-card">
+        <div class="assistant-sphere"></div>
+        
+        <!-- Step 1: Name -->
+        <div class="step active" id="step1">
+            <h2 class="mb-4 font-weight-bold transition-all">Merhaba! Ben tıbbi asistanın.<br>Sana nasıl hitap etmemi istersin?</h2>
+            <div class="mt-5">
+                <input type="text" id="userNameInput" class="form-control wizard-input-lg mb-4" placeholder="İsmini buraya yazabilirsin..." autofocus>
+                <button class="btn btn-primary-calm btn-lg px-5 py-3 f-large" onclick="toStep3()">Devam Et <i class="fas fa-arrow-right ml-2"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 3: Medicine Name (Loopable) -->
+        <div class="step" id="step3">
+            <h2 class="mb-4 font-weight-bold"><span id="welcomeNameText" class="d-none"></span> <br>Şimdi kullandığın bir ilacı ekleyelim.</h2>
+            <div class="mt-5 position-relative">
+                <input type="text" id="medNameInput" class="form-control wizard-input-lg mb-4" placeholder="İlaç adını yazmaya başla..." oninput="handleMedInput(this)">
+                <div id="suggestions" class="suggestions-container"></div>
+                <button class="btn btn-primary-calm btn-lg px-5 py-3 f-large" onclick="toStep4()">Sıradaki Adım <i class="fas fa-chevron-right ml-2"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 4: Frequency -->
+        <div class="step" id="step4">
+            <h2 class="mb-4 font-weight-bold"><span id="targetMed" class="text-teal"></span> ilacını günde kaç kez alıyorsun?</h2>
+            <div class="mt-5">
+                <div class="row px-4">
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-outline-light btn-lg w-100 py-4 f-large" onclick="prepareTimePicking(1)">Günde 1</button>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-outline-light btn-lg w-100 py-4 f-large" onclick="prepareTimePicking(2)">Günde 2</button>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-outline-light btn-lg w-100 py-4 f-large" onclick="prepareTimePicking(3)">Günde 3</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Custom Times -->
+        <div class="step" id="step5">
+            <h2 class="mb-4 font-weight-bold"><span id="targetMedTime" class="text-teal"></span> için kullanım saatlerini belirle</h2>
+            <div id="timeInputsContainer" class="mt-5 d-flex flex-column align-items-center">
+                <!-- Time inputs will be generated here -->
+            </div>
+            <div class="mt-4">
+                <button class="btn btn-primary-calm btn-lg px-5 py-3 f-large" onclick="saveMedWithTimes()">İlacı Kaydet <i class="fas fa-check-circle ml-2"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 6: Add Another or Finish -->
+        <div class="step" id="step6">
+            <h2 class="mb-4 font-weight-bold">İlaç başarıyla eklendi!</h2>
+            <p class="text-muted f-large mb-4">Şu ana kadar <span id="medCountAdded" class="text-white font-weight-bold">0</span> ilaç ekledin.</p>
+            <div class="mt-4 d-flex justify-content-center w-100 px-4 gap-3">
+                <button class="btn btn-outline-light med-action-btn" onclick="addAnotherMed()"><i class="fas fa-plus-circle mr-2"></i> Başka İlaç Ekle</button>
+                <button class="btn btn-primary-calm med-action-btn" onclick="finalizeSetup()"><i class="fas fa-flag-checkered mr-2"></i> Kurulumu Bitir</button>
+            </div>
+        </div>
+
+        <div class="progress mt-5" style="width: 100%; height: 6px; background: rgba(255,255,255,0.05);">
+            <div id="wizardProgress" class="progress-bar bg-teal" role="progressbar" style="width: 20%"></div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/medications.js"></script>
+    <script>
+         let userData = {
+            userName: "",
+            medicines: []
+        };
+        let currentFreqSelection = 0;
+
+        function toStep3() {
+            userData.userName = $('#userNameInput').val();
+            if(!userData.userName) return;
+            $('#welcomeNameText').text(userData.userName + ", memnun oldum.").removeClass('d-none');
+            showStep('step3', 40);
+        }
+
+        function handleMedInput(input) {
+            const val = input.value.toLowerCase();
+            const suggestionsDiv = $('#suggestions');
+            suggestionsDiv.empty();
+            
+            if(val.length < 2) {
+                suggestionsDiv.hide();
+                return;
+            }
+
+            const matches = (typeof commonMeds !== 'undefined' ? commonMeds : []).filter(m => m.toLowerCase().includes(val)).slice(0, 10);
+            if(matches.length > 0) {
+                matches.forEach(m => {
+                    const item = $('<div class="suggestion-item"></div>').text(m);
+                    item.on('click', () => {
+                        input.value = m;
+                        suggestionsDiv.hide();
+                    });
+                    suggestionsDiv.append(item);
+                });
+                suggestionsDiv.show();
+            } else {
+                suggestionsDiv.hide();
+            }
+        }
+
+        function toStep4() {
+            const medName = $('#medNameInput').val();
+            if(!medName) return;
+            $('#targetMed').text(medName);
+            $('#targetMedTime').text(medName);
+            showStep('step4', 60);
+        }
+
+        function prepareTimePicking(freq) {
+            currentFreqSelection = freq;
+            const container = $('#timeInputsContainer');
+            container.empty();
+            
+            for (let i = 1; i <= freq; i++) {
+                const defaultTime = i == 1 ? "09:00" : (i == 2 ? "21:00" : (i == 3 ? "15:00" : "12:00"));
+                container.append(`
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="mr-3 text-muted f-large">${i}. Doz Saati:</label>
+                        <input type="time" class="form-control wizard-input-lg custom-time-input" value="${defaultTime}" style="width: 200px;">
+                    </div>
+                `);
+            }
+            showStep('step5', 80);
+        }
+
+        function saveMedWithTimes() {
+            const medName = $('#medNameInput').val();
+            // Varsayılan stok yüksek tutuluyor, kullanıcıyı detayla yormuyoruz
+            let medObj = { name: medName, dosages: [], stock: 1000 }; 
+            
+            $('.custom-time-input').each(function() {
+                medObj.dosages.push({ frequency: 0, time: $(this).val() });
+            });
+
+            userData.medicines.push(medObj);
+
+            $('#medCountAdded').text(userData.medicines.length);
+            showStep('step6', 100);
+        }
+
+        function addAnotherMed() {
+            $('#medNameInput').val(''); // Clear for next med
+            $('#welcomeNameText').addClass('d-none'); // Hide welcome text on subsequent runs
+            showStep('step3', 40);
+        }
+
+        function showStep(stepId, progress) {
+            $('.step').removeClass('active');
+            $(`#${stepId}`).addClass('active');
+            $('#wizardProgress').css('width', `${progress}%`);
+        }
+
+        function finalizeSetup() {
+            if(userData.medicines.length === 0) {
+                alert("Lütfen en az bir ilaç ekleyin.");
+                return;
+            }
+            
+            $.ajax({
+                url: '/PersonalAssistant/CompleteOnboarding',
+                type: 'POST',
+                data: {
+                    userName: userData.userName,
+                    medicines: userData.medicines
+                },
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = response.redirectUrl;
+                    }
+                }
+            });
+        }
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.position-relative').length) {
+                $('#suggestions').hide();
+            }
+        });
+    </script>
+</body>
+</html>

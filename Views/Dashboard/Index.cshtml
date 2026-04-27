@@ -1,0 +1,194 @@
+@{
+    ViewData["Title"] = "Hoş Geldin " + ViewBag.UserName;
+    var todayPlan = ViewBag.TodayPlan as List<dynamic>;
+}
+
+<div class="row mb-5">
+    <div class="col-12">
+        <h1 class="f-xlarge font-weight-bold mb-2 text-teal">Merhaba @ViewBag.UserName!</h1>
+        <p class="text-muted f-large">Bugünkü ilaç programın aşağıda listelenmiştir:</p>
+        
+        <div id="notifPermissionAlert" class="alert alert-info border-teal mt-3" style="display:none; background: rgba(79, 209, 197, 0.1);">
+            <div class="d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-bell mr-2"></i> İlaç vakitlerinde bildirim almak için izin vermelisin.</span>
+                <button class="btn btn-primary-calm btn-sm" id="btnEnableNotifications" onclick="requestPermission()">Bildirimleri Aç</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="glass-card">
+            <h4 class="mb-4 font-weight-bold"><i class="fas fa-calendar-day text-teal mr-2"></i> Bugünün Programı</h4>
+            
+            <div class="table-responsive">
+                <table class="table table-hover f-large">
+                    <thead>
+                        <tr>
+                            <th>Saat</th>
+                            <th>İlaç</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(todayPlan != null && todayPlan.Count > 0)
+                        {
+                            foreach(var item in todayPlan)
+                            {
+                                <tr>
+                                    <td class="font-weight-bold">@item.TimeStr</td>
+                                    <td class="text-teal font-weight-bold">@item.MedicineName</td>
+                                    <td>
+                                        @if(item.Status == "Bekliyor") {
+                                            <span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-clock mr-1"></i> Bekliyor</span>
+                                        } else if (item.Status == "Alındı") {
+                                            <span class="badge bg-success px-3 py-2"><i class="fas fa-check-circle mr-1"></i> Alındı</span>
+                                        } else {
+                                            <span class="badge bg-danger px-3 py-2"><i class="fas fa-times-circle mr-1"></i> Kaçırıldı</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if(item.Status == "Bekliyor") {
+                                            <button class="btn btn-sm btn-outline-success" onclick="recordDose(@item.MedicineId)">
+                                                <i class="fas fa-check"></i> Aldım
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        } else {
+                            <tr><td colspan="4" class="text-center text-muted py-5">Bugün için planlanmış ilaç yok.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bildirim Modalı -->
+<div class="modal fade" id="notificationModal" tabindex="-1" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: var(--bg-dark); border: 2px solid var(--accent-primary);">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-teal font-weight-bold"><i class="fas fa-bell mr-2"></i> İlaç Vakti!</h5>
+      </div>
+      <div class="modal-body text-center py-4">
+        <h4 class="mb-3 text-white">@ViewBag.UserName, <span id="notifMedName" class="text-teal"></span> içtin mi?</h4>
+        <p class="text-muted">Planlanan saat: <strong id="notifTime"></strong></p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-primary-calm btn-lg px-5 py-3 f-large" id="btnYesITookIt"><i class="fas fa-check-circle mr-2"></i> Evet, İçtim</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <script>
+        const schedules = @Html.Raw(ViewBag.SchedulesJson);
+        const userName = "@ViewBag.UserName";
+        let currentModalMedId = null;
+        let isModalOpen = false;
+
+        // Bildirim İzni İste
+        function requestPermission() {
+            if (!("Notification" in window)) {
+                alert("Bu tarayıcı masaüstü bildirimlerini desteklemiyor.");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    $('#btnEnableNotifications').fadeOut();
+                }
+            });
+        }
+
+        function recordDose(medId) {
+            fetch(`/Dashboard/RecordDose?medicineId=${medId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload(); 
+                }
+            });
+        }
+
+        $('#btnYesITookIt').click(function() {
+            if(currentModalMedId) {
+                recordDose(currentModalMedId);
+            }
+        });
+
+        function checkSchedules() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+
+            let shouldReload = false;
+
+            schedules.forEach(item => {
+                if(item.Status === "Bekliyor") {
+                    const parts = item.TimeStr.split(':');
+                    const schedHour = parseInt(parts[0]);
+                    const schedMin = parseInt(parts[1]);
+
+                    const schedTimeInMinutes = schedHour * 60 + schedMin;
+                    const currentTimeInMinutes = currentHour * 60 + currentMin;
+
+                    const diff = currentTimeInMinutes - schedTimeInMinutes;
+
+                    if(diff >= 0 && diff < 60) {
+                        if(!isModalOpen) {
+                            // SAĞ ALT BİLDİRİM GÖNDER
+                            if (Notification.permission === "granted") {
+                                const notification = new Notification("İlaç Vakti!", {
+                                    body: `${userName}, ${item.MedicineName} içtin mi? (Saat: ${item.TimeStr})`,
+                                    icon: "https://cdn-icons-png.flaticon.com/512/822/822143.png", // Örnek bir ikon
+                                    requireInteraction: true // Kullanıcı kapatana kadar kalması için
+                                });
+
+                                notification.onclick = function() {
+                                    window.focus();
+                                    $('#notifMedName').text(item.MedicineName);
+                                    $('#notifTime').text(item.TimeStr);
+                                    currentModalMedId = item.MedicineId;
+                                    $('#notificationModal').modal('show');
+                                    notification.close();
+                                };
+                            }
+
+                            // Ekranda modalı da açıyoruz ki tıklayabilsin
+                            $('#notifMedName').text(item.MedicineName);
+                            $('#notifTime').text(item.TimeStr);
+                            currentModalMedId = item.MedicineId;
+                            $('#notificationModal').modal('show');
+                            isModalOpen = true;
+                        }
+                    }
+                    else if (diff >= 60) {
+                        shouldReload = true;
+                    }
+                }
+            });
+
+            if(shouldReload && !isModalOpen) {
+                location.reload();
+            }
+        }
+
+        // Eğer izin verilmemişse izin butonunu göster
+        $(document).ready(function() {
+            if (Notification.permission !== "granted") {
+                $('#notifPermissionAlert').show();
+            }
+            setInterval(checkSchedules, 10000);
+            setTimeout(checkSchedules, 500);
+        });
+
+    </script>
+}

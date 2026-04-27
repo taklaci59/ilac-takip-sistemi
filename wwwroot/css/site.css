@@ -1,0 +1,119 @@
+:root {
+    --bg-dark: #1a202c;
+    --surface-dark: #2d3748;
+    --surface-glass: rgba(45, 55, 72, 0.7);
+    --accent-primary: #4fd1c5; /* Calm Teal */
+    --accent-secondary: #63b3ed; /* Sky Blue */
+    --text-primary: #f7fafc;
+    --text-muted: #a0aec0;
+    --border-soft: #4a5568;
+    --danger: #f56565;
+    --success: #48bb78;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem; /* Slightly larger for easier reading */
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+.glass-card {
+    background: var(--surface-glass);
+    -webkit-backdrop-filter: blur(8px); /* Safari support */
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.sidebar {
+    height: 100vh;
+    background: #171923; /* Slightly darker than main bg */
+    border-right: 1px solid var(--border-soft);
+    padding: 24px;
+    position: fixed;
+    width: 260px;
+}
+
+.main-content {
+    margin-left: 260px;
+    padding: 40px;
+}
+
+.btn-primary-calm {
+    background: var(--accent-primary);
+    border: none;
+    color: #1a202c;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-calm:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 209, 197, 0.3);
+    color: #1a202c;
+}
+
+.text-teal {
+    color: var(--accent-primary);
+}
+
+.navbar {
+    background: #171923 !important;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.table {
+    color: var(--text-primary);
+}
+
+.table thead th {
+    border-color: var(--border-soft);
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.table td {
+    border-color: rgba(255,255,255,0.05);
+    vertical-align: middle;
+}
+
+.stock-alert {
+    background: rgba(245, 101, 101, 0.1);
+    border-left: 5px solid var(--danger);
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-soft);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-primary);
+}
+
+/* Utility for bigger fonts */
+.f-large { font-size: 1.4rem; }
+.f-xlarge { font-size: 2.2rem; }

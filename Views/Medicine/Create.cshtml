@@ -1,0 +1,127 @@
+@model ilactakipsistem.Models.Medicine
+
+@{
+    ViewData["Title"] = "Yeni İlaç Ekle";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="glass-card">
+            <h4 class="mb-4"><i class="fas fa-plus-circle text-teal mr-2"></i>İlaç Bilgilerini Girin</h4>
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3 position-relative">
+                        <label asp-for="Name" class="control-label text-muted"></label>
+                        <input asp-for="Name" class="form-control bg-dark text-white border-teal" id="medSearchInput" placeholder="Örn: Arveles" autocomplete="off" />
+                        <div id="medSuggestions" class="suggestion-box"></div>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Unit" class="control-label text-muted"></label>
+                        <select asp-for="Unit" class="form-select bg-dark text-white border-teal">
+                            <option value="Adet">Adet (Tablet/Kapsül)</option>
+                            <option value="ml">Mililitre (ml)</option>
+                            <option value="mg">Miligram (mg)</option>
+                            <option value="Doz">Doz</option>
+                        </select>
+                        <span asp-validation-for="Unit" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="control-label text-muted"></label>
+                    <textarea asp-for="Description" class="form-control bg-dark text-white border-teal" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="StockQuantity" class="control-label text-muted"></label>
+                        <input asp-for="StockQuantity" class="form-control bg-dark text-white border-teal" type="number" />
+                        <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CriticalStockLevel" class="control-label text-muted"></label>
+                        <input asp-for="CriticalStockLevel" class="form-control bg-dark text-white border-teal" type="number" />
+                        <span asp-validation-for="CriticalStockLevel" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-light">Geri Dön</a>
+                    <button type="submit" class="btn btn-primary-calm px-5">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .suggestion-box {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #1e293b;
+        border: 1px solid #4fd1c5;
+        border-top: none;
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+        border-radius: 0 0 8px 8px;
+    }
+    .suggestion-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #e2e8f0;
+    }
+    .suggestion-item:hover {
+        background: #334155;
+        color: #4fd1c5;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/medications.js"></script>
+    <script>
+        $(document).ready(function() {
+            const $input = $('#medSearchInput');
+            const $box = $('#medSuggestions');
+
+            $input.on('input', function() {
+                const val = $(this).val().toLowerCase();
+                if (val.length < 2) {
+                    $box.hide();
+                    return;
+                }
+
+                const filtered = commonMeds.filter(med => med.toLowerCase().includes(val)).slice(0, 8);
+                
+                if (filtered.length > 0) {
+                    $box.empty().show();
+                    filtered.forEach(med => {
+                        $box.append(`<div class="suggestion-item">${med}</div>`);
+                    });
+                } else {
+                    $box.hide();
+                }
+            });
+
+            $(document).on('click', '.suggestion-item', function() {
+                $input.val($(this).text());
+                $box.hide();
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.position-relative').length) {
+                    $box.hide();
+                }
+            });
+        });
+    </script>
+}
