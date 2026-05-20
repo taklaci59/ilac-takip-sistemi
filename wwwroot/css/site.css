@@ -117,3 +117,50 @@ body {
 /* Utility for bigger fonts */
 .f-large { font-size: 1.4rem; }
 .f-xlarge { font-size: 2.2rem; }
+
+/* Light Theme Support */
+[data-theme='light'] {
+    --bg-dark: #f8fafc;
+    --surface-dark: #ffffff;
+    --surface-glass: rgba(255, 255, 255, 0.8);
+    --text-primary: #1e293b;
+    --text-muted: #64748b;
+    --border-soft: #e2e8f0;
+}
+[data-theme='light'] body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+}
+[data-theme='light'] .sidebar {
+    background: #f1f5f9;
+    border-right: 1px solid var(--border-soft);
+}
+[data-theme='light'] .sidebar .nav-link {
+    color: #1e293b !important;
+}
+[data-theme='light'] .navbar {
+    background: #f1f5f9 !important;
+    border-bottom: 1px solid var(--border-soft);
+}
+[data-theme='light'] .navbar-brand {
+    color: #1e293b !important;
+}
+[data-theme='light'] .navbar-toggler-icon {
+    filter: invert(1);
+}
+[data-theme='light'] .table {
+    color: var(--text-primary);
+}
+[data-theme='light'] .table td {
+    border-color: #e2e8f0;
+}
+[data-theme='light'] .text-white {
+    color: #1e293b !important;
+}
+[data-theme='light'] .modal-content {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+[data-theme='light'] .text-muted {
+    color: #64748b !important;
+}

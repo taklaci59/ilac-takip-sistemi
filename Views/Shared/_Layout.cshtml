@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +7,10 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 </head>
 <body>
     <div class="sidebar d-none d-lg-block" style="width: 260px;">
@@ -56,10 +59,15 @@
     </nav>
 
     <div class="main-content">
-        <header class="mb-4 d-flex justify-content-between align-items-center">
+        <header class="mb-4 d-flex justify-content-between align-items-center flex-wrap">
             <h2 class="font-weight-bold">@ViewData["Title"]</h2>
-            <div class="user-profile glass-card py-2 px-3">
-                <i class="fas fa-user-circle mr-2 text-teal"></i> <span>Hoş Geldin, @(ViewBag.UserName ?? "Kullanıcı")</span>
+            <div class="d-flex align-items-center">
+                <button id="theme-toggle" class="btn btn-sm mr-3" onclick="toggleTheme()" title="Tema Değiştir" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-soft); color: var(--accent-primary); background: var(--surface-glass);">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="user-profile glass-card py-2 px-3">
+                    <i class="fas fa-user-circle mr-2 text-teal"></i> <span>Hoş Geldin, @(ViewBag.UserName ?? "Kullanıcı")</span>
+                </div>
             </div>
         </header>
         
@@ -77,6 +85,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeToggleIcon(next);
+        }
+
+        function updateThemeToggleIcon(theme) {
+            const icon = document.querySelector('#theme-toggle i');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            updateThemeToggleIcon(currentTheme);
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

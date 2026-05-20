@@ -68,6 +68,23 @@
     </div>
 </div>
 
+<div class="row mt-4 mb-4">
+    <div class="col-lg-12">
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                <h4 class="mb-0 font-weight-bold"><i class="fas fa-chart-bar text-teal mr-2"></i> Son 7 Günlük İlaç Takibi</h4>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-success mr-2" onclick="exportExcel()"><i class="fas fa-file-excel mr-1"></i> Excel İndir</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="exportPDF()"><i class="fas fa-file-pdf mr-1"></i> PDF İndir</button>
+                </div>
+            </div>
+            <div style="position: relative; height:300px; width:100%">
+                <canvas id="medicineChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Bildirim Modalı -->
 <div class="modal fade" id="notificationModal" tabindex="-1" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-dialog-centered">
@@ -188,7 +205,56 @@
             }
             setInterval(checkSchedules, 10000);
             setTimeout(checkSchedules, 500);
+
+            // Chart ve Export Scriptleri
+            const labels = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartLabels ?? new List<string>()));
+            const taken = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartTaken ?? new List<int>()));
+            const missed = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartMissed ?? new List<int>()));
+            
+            const ctx = document.getElementById('medicineChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Alındı', data: taken, backgroundColor: 'rgba(79, 209, 197, 0.7)', borderColor: 'rgba(79, 209, 197, 1)', borderWidth: 1, borderRadius: 6 },
+                        { label: 'Kaçırıldı', data: missed, backgroundColor: 'rgba(239, 68, 68, 0.7)', borderColor: 'rgba(239, 68, 68, 1)', borderWidth: 1, borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
         });
 
+        // Excel export
+        function exportExcel() {
+            const labels = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartLabels ?? new List<string>()));
+            const taken = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartTaken ?? new List<int>()));
+            const missed = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartMissed ?? new List<int>()));
+            const wb = XLSX.utils.book_new();
+            const data = [['Tarih', 'Alındı', 'Kaçırıldı']];
+            labels.forEach((l, i) => data.push([l, taken[i], missed[i]]));
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, 'İlaç Takip');
+            XLSX.writeFile(wb, 'ilac-takip-son-7-gun.xlsx');
+        }
+
+        // PDF export
+        function exportPDF() {
+            const labels = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartLabels ?? new List<string>()));
+            const taken = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartTaken ?? new List<int>()));
+            const missed = @@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartMissed ?? new List<int>()));
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text('İlaç Takip - Son 7 Gün', 14, 20);
+            const rows = labels.map((l, i) => [l, taken[i], missed[i]]);
+            doc.autoTable({ head: [['Tarih', 'Alındı', 'Kaçırıldı']], body: rows, startY: 30 });
+            doc.save('ilac-takip-son-7-gun.pdf');
+        }
     </script>
 }

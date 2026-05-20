@@ -86,6 +86,13 @@ namespace ilactakipsistem.Controllers
             ViewBag.TodayPlan = todayPlan;
             ViewBag.SchedulesJson = System.Text.Json.JsonSerializer.Serialize(todayPlan);
 
+            // Son 7 gün chart verisi
+            var last7Days = Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-i)).OrderBy(d => d).ToList();
+            var allLogs = await _context.UsageLogs.Where(l => l.DateTaken >= last7Days.First()).ToListAsync();
+            ViewBag.ChartLabels = last7Days.Select(d => d.ToString("dd MMM")).ToList();
+            ViewBag.ChartTaken = last7Days.Select(d => allLogs.Count(l => l.DateTaken.Date == d.Date && l.IsTaken)).ToList();
+            ViewBag.ChartMissed = last7Days.Select(d => allLogs.Count(l => l.DateTaken.Date == d.Date && !l.IsTaken)).ToList();
+
             return View();
         }
 
